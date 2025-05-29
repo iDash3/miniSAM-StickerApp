@@ -1,30 +1,20 @@
 # TinySAM Sticker App
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+A web application that uses **TinySAM** to extract stickers from images directly in the browser. This app provides an interactive interface for precise object segmentation using Meta AI's SAM technology, optimized for web use.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/idash3s-projects/v0-tiny-sam-sticker-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/mtSLLFZS4w2)
+## Features
 
-## Overview
-
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
-
-## Deployment
-
-Your project is live at:
-
-**[https://vercel.com/idash3s-projects/v0-tiny-sam-sticker-app](https://vercel.com/idash3s-projects/v0-tiny-sam-sticker-app)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.dev/chat/projects/mtSLLFZS4w2](https://v0.dev/chat/projects/mtSLLFZS4w2)**
+- **AI-Powered Segmentation**: Uses TinySAM, a lightweight version of Meta AI's Segment Anything Model
+- **Interactive Click Interface**: Add include/exclude clicks to refine selections
+- **Real-time Preview**: See segmentation masks as you click
+- **Sticker Collection**: Save and manage extracted stickers
+- **In-Browser Processing**: No server required - everything runs client-side
 
 ## How It Works
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+1. **Upload an Image**: Select any image from your device
+2. **Initialize TinySAM**: The app loads the segmentation models
+3. **Click to Select**: Click on objects you want to extract (green = include, red = exclude)
+4. **Real-time Segmentation**: See the AI-generated mask overlay
+5. **Extract Sticker**: Save the object with transparent background
+6. **Collect & Reuse**: Build your sticker collection
