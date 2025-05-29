@@ -1,384 +1,577 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trash2, Upload, Eraser, Plus, Minus, Scissors } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { useStickerStore } from "@/lib/sticker-store"
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trash2, Upload, Eraser, Plus, Minus, Scissors } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useStickerStore } from "@/lib/sticker-store";
 import {
   initTinySam,
   createSession,
   precomputeEmbedding,
   type ClickType,
   type SimpleSegmentationSession,
-} from "@/lib/tinysam-loader"
+} from "@/lib/tinysam-loader";
 
 type Click = {
-  x: number
-  y: number
-  type: ClickType
-}
+  x: number;
+  y: number;
+  type: ClickType;
+};
 
 export function StudioWorkspace() {
-  const { toast } = useToast()
-  const { addSticker } = useStickerStore()
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [image, setImage] = useState<HTMLImageElement | null>(null)
-  const [clicks, setClicks] = useState<Click[]>([])
-  const [clickMode, setClickMode] = useState<ClickType>("include")
-  const [mask, setMask] = useState<ImageData | null>(null)
-  const [session, setSession] = useState<SimpleSegmentationSession | null>(null)
+  const { toast } = useToast();
+  const { addSticker } = useStickerStore();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [clicks, setClicks] = useState<Click[]>([]);
+  const [clickMode, setClickMode] = useState<ClickType>("include");
+  const [mask, setMask] = useState<ImageData | null>(null);
+  const [session, setSession] = useState<SimpleSegmentationSession | null>(
+    null
+  );
 
-  const imageCanvasRef = useRef<HTMLCanvasElement>(null)
-  const maskCanvasRef = useRef<HTMLCanvasElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageCanvasRef = useRef<HTMLCanvasElement>(null);
+  const maskCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize TinySAM
   useEffect(() => {
     const init = async () => {
       try {
-        setIsLoading(true)
-        await initTinySam()
-        setIsInitialized(true)
+        setIsLoading(true);
+        await initTinySam();
+        setIsInitialized(true);
         toast({
           title: "TinySAM initialized",
           description: "Ready to extract stickers!",
-        })
+        });
       } catch (error) {
-        console.error("Failed to initialize TinySAM:", error)
+        console.error("Failed to initialize TinySAM:", error);
         toast({
           title: "Initialization failed",
           description: "Could not load segmentation models",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    init()
-  }, [toast])
+    init();
+  }, [toast]);
 
   // Handle file upload
   const handleFileUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-      setIsLoading(true)
-      const reader = new FileReader()
+      setIsLoading(true);
+      const reader = new FileReader();
 
       reader.onload = async (event) => {
-        if (!event.target?.result) return
+        if (!event.target?.result) return;
 
         // Create image element
-        const img = new Image()
+        const img = new Image();
         img.onload = async () => {
-          setImage(img)
+          setImage(img);
 
           // Reset state
-          setClicks([])
-          setMask(null)
+          setClicks([]);
+          setMask(null);
 
           // Draw image on canvas
-          const canvas = imageCanvasRef.current
+          const canvas = imageCanvasRef.current;
           if (canvas) {
-            canvas.width = img.width
-            canvas.height = img.height
-            const ctx = canvas.getContext("2d")
-            ctx?.drawImage(img, 0, 0)
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(img, 0, 0);
           }
 
           try {
             // Precompute embedding for faster segmentation
-            await precomputeEmbedding(img)
+            await precomputeEmbedding(img);
 
             // Create new session
-            const newSession = createSession(img)
-            setSession(newSession)
+            const newSession = createSession(img);
+            setSession(newSession);
 
-            setIsLoading(false)
+            setIsLoading(false);
           } catch (error) {
-            console.error("Error preparing image:", error)
+            console.error("Error preparing image:", error);
             toast({
               title: "Error",
               description: "Failed to process the image",
               variant: "destructive",
-            })
-            setIsLoading(false)
+            });
+            setIsLoading(false);
           }
-        }
+        };
 
-        img.src = event.target.result as string
-      }
+        img.src = event.target.result as string;
+      };
 
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(file);
     },
-    [toast],
-  )
+    [toast]
+  );
 
   // Handle canvas click
   const handleCanvasClick = useCallback(
     async (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!image || !session || isLoading) return
+      if (!image || !session || isLoading) return;
 
-      const canvas = imageCanvasRef.current
-      if (!canvas) return
+      const canvas = imageCanvasRef.current;
+      if (!canvas) return;
 
       // Get click coordinates relative to the original image
-      const rect = canvas.getBoundingClientRect()
-      const scaleX = image.width / rect.width
-      const scaleY = image.height / rect.height
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = image.width / rect.width;
+      const scaleY = image.height / rect.height;
 
-      const x = (e.clientX - rect.left) * scaleX
-      const y = (e.clientY - rect.top) * scaleY
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
 
       // Add click to state
-      const newClick = { x, y, type: clickMode }
-      setClicks((prev) => [...prev, newClick])
+      const newClick = { x, y, type: clickMode };
+      setClicks((prev) => [...prev, newClick]);
 
       // Add click to session
-      session.addClick(x, y, clickMode)
+      session.addClick(x, y, clickMode);
 
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         // Perform segmentation
-        const maskData = await session.segment(image)
-        setMask(maskData)
+        const maskData = await session.segment(image);
+        setMask(maskData);
 
         // Draw mask on mask canvas
-        const maskCanvas = maskCanvasRef.current
+        const maskCanvas = maskCanvasRef.current;
         if (maskCanvas && maskData) {
-          maskCanvas.width = maskData.width
-          maskCanvas.height = maskData.height
-          const ctx = maskCanvas.getContext("2d")
-          ctx?.putImageData(maskData, 0, 0)
+          maskCanvas.width = maskData.width;
+          maskCanvas.height = maskData.height;
+          const ctx = maskCanvas.getContext("2d");
+          ctx?.putImageData(maskData, 0, 0);
         }
       } catch (error) {
-        console.error("Segmentation error:", error)
+        console.error("Segmentation error:", error);
         toast({
           title: "Segmentation failed",
           description: "Could not generate mask",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     },
-    [image, session, isLoading, clickMode, toast],
-  )
+    [image, session, isLoading, clickMode, toast]
+  );
 
   // Reset workspace
   const resetWorkspace = useCallback(() => {
     if (session) {
-      session.reset()
+      session.reset();
     }
-    setClicks([])
-    setMask(null)
+    setClicks([]);
+    setMask(null);
 
     // Clear mask canvas
-    const maskCanvas = maskCanvasRef.current
+    const maskCanvas = maskCanvasRef.current;
     if (maskCanvas) {
-      const ctx = maskCanvas.getContext("2d")
-      ctx?.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+      const ctx = maskCanvas.getContext("2d");
+      ctx?.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
     }
-  }, [session])
+  }, [session]);
 
   // Extract sticker
   const extractSticker = useCallback(() => {
-    if (!image || !mask) return
+    if (!image || !mask) return;
 
     try {
+      console.log("Extracting sticker...");
+      console.log("Image dimensions:", image.width, "x", image.height);
+      console.log("Mask dimensions:", mask.width, "x", mask.height);
+
+      // Log a sample of mask data to understand the format
+      const sampleMaskData = Array.from(mask.data.slice(0, 20));
+      console.log("Sample mask data:", sampleMaskData);
+      console.log(
+        "Original mask format - width:",
+        mask.width,
+        "height:",
+        mask.height,
+        "data length:",
+        mask.data.length
+      );
+      console.log("Expected length for RGBA:", mask.width * mask.height * 4);
+      console.log("Expected length for grayscale:", mask.width * mask.height);
+
       // Create a temporary canvas for the extracted sticker
-      const tempCanvas = document.createElement("canvas")
-      const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true })
-      if (!tempCtx) return
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
+      if (!tempCtx) return;
 
       // Set canvas size to match the original image
-      tempCanvas.width = image.width
-      tempCanvas.height = image.height
+      tempCanvas.width = image.width;
+      tempCanvas.height = image.height;
 
       // Draw the original image
-      tempCtx.drawImage(image, 0, 0)
+      tempCtx.drawImage(image, 0, 0);
 
       // Get image data
-      const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height)
+      const imageData = tempCtx.getImageData(
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+      );
 
-      // Create a scaled-up version of the mask
-      const scaledMaskCanvas = document.createElement("canvas")
-      scaledMaskCanvas.width = image.width
-      scaledMaskCanvas.height = image.height
-      const scaledMaskCtx = scaledMaskCanvas.getContext("2d")
-      if (!scaledMaskCtx) return
+      let maskedPixels = 0;
+      let totalPixels = imageData.data.length / 4;
 
-      // Draw the mask scaled to match the image dimensions
-      const maskCanvas = maskCanvasRef.current
-      if (maskCanvas) {
-        scaledMaskCtx.drawImage(maskCanvas, 0, 0, image.width, image.height)
-      }
+      // Check if the original mask is single-channel (grayscale)
+      const isOriginalSingleChannel =
+        mask.data.length === mask.width * mask.height;
 
-      // Get the scaled mask data
-      const scaledMaskData = scaledMaskCtx.getImageData(0, 0, image.width, image.height)
+      if (isOriginalSingleChannel) {
+        console.log("Original mask appears to be single-channel (grayscale)");
 
-      // Apply the mask to the image (set alpha to 0 for non-masked areas)
-      for (let i = 0; i < imageData.data.length; i += 4) {
-        // Check if this pixel is part of the mask (mask is grayscale, so we just check the red channel)
-        // Threshold at 128 (half of 255)
-        if (scaledMaskData.data[i] < 128) {
-          // Set alpha to 0 for non-masked areas
-          imageData.data[i + 3] = 0
+        // For single-channel masks, apply directly
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          const pixelIndex = i / 4;
+          const x = pixelIndex % image.width;
+          const y = Math.floor(pixelIndex / image.width);
+
+          // Scale coordinates to mask dimensions
+          const maskX = Math.floor((x * mask.width) / image.width);
+          const maskY = Math.floor((y * mask.height) / image.height);
+          const maskIndex = maskY * mask.width + maskX;
+
+          const maskValue = mask.data[maskIndex] || 0;
+
+          if (maskValue > 128) {
+            maskedPixels++;
+          } else {
+            imageData.data[i + 3] = 0; // Set alpha to 0 (transparent)
+          }
         }
+
+        console.log(
+          `Direct single-channel: Masked pixels: ${maskedPixels} out of ${totalPixels} (${(
+            (maskedPixels / totalPixels) *
+            100
+          ).toFixed(1)}%)`
+        );
+      } else {
+        console.log("Original mask appears to be multi-channel (RGBA)");
+
+        // Continue with the scaled mask approach
+        // Create a temporary canvas to hold the original mask
+        const originalMaskCanvas = document.createElement("canvas");
+        originalMaskCanvas.width = mask.width;
+        originalMaskCanvas.height = mask.height;
+        const originalMaskCtx = originalMaskCanvas.getContext("2d");
+        if (!originalMaskCtx) return;
+
+        // Put the original mask data on the temporary canvas
+        originalMaskCtx.putImageData(mask, 0, 0);
+
+        // Create a scaled version of the mask to match image dimensions
+        const scaledMaskCanvas = document.createElement("canvas");
+        scaledMaskCanvas.width = image.width;
+        scaledMaskCanvas.height = image.height;
+        const scaledMaskCtx = scaledMaskCanvas.getContext("2d");
+        if (!scaledMaskCtx) return;
+
+        // Scale the mask to match the image dimensions
+        scaledMaskCtx.drawImage(
+          originalMaskCanvas,
+          0,
+          0,
+          image.width,
+          image.height
+        );
+
+        // Get the scaled mask data
+        const scaledMaskData = scaledMaskCtx.getImageData(
+          0,
+          0,
+          image.width,
+          image.height
+        );
+
+        // Apply the mask to the image (set alpha to 0 for non-masked areas)
+        maskedPixels = 0;
+        totalPixels = imageData.data.length / 4;
+
+        // First, let's understand the mask format better
+        console.log(
+          "First 40 mask values:",
+          Array.from(scaledMaskData.data.slice(0, 40))
+        );
+
+        // Check if mask is in RGBA format or grayscale
+        let isGrayscale = true;
+        for (
+          let i = 0;
+          i < Math.min(1000, scaledMaskData.data.length);
+          i += 4
+        ) {
+          const r = scaledMaskData.data[i];
+          const g = scaledMaskData.data[i + 1];
+          const b = scaledMaskData.data[i + 2];
+          if (r !== g || g !== b) {
+            isGrayscale = false;
+            break;
+          }
+        }
+        console.log("Mask is grayscale:", isGrayscale);
+
+        for (let i = 0; i < imageData.data.length; i += 4) {
+          const pixelIndex = i / 4;
+          const maskPixelIndex = pixelIndex * 4;
+
+          // Get mask values
+          const maskR = scaledMaskData.data[maskPixelIndex] || 0;
+          const maskG = scaledMaskData.data[maskPixelIndex + 1] || 0;
+          const maskB = scaledMaskData.data[maskPixelIndex + 2] || 0;
+          const maskA = scaledMaskData.data[maskPixelIndex + 3] || 0;
+
+          // For TinySAM masks, check multiple interpretations:
+          // 1. Grayscale in RGB channels where white = foreground
+          // 2. Alpha channel contains the mask
+          // 3. Any non-zero value indicates foreground
+
+          let isForeground = false;
+
+          // TinySAM masks appear to store mask information in the ALPHA channel!
+          // Alpha = 255 means foreground, Alpha = 0 means background
+          if (maskA > 128) {
+            isForeground = true;
+          } else if (isGrayscale && maskR > 128) {
+            // Fallback: check RGB for traditional grayscale masks
+            isForeground = true;
+          } else if (
+            !isGrayscale &&
+            (maskR > 128 || maskG > 128 || maskB > 128)
+          ) {
+            // Fallback: check for any bright RGB values
+            isForeground = true;
+          }
+
+          if (isForeground) {
+            // Keep the original pixel (this is foreground)
+            maskedPixels++;
+          } else {
+            // Make pixel transparent (this is background)
+            imageData.data[i + 3] = 0; // Set alpha to 0
+          }
+        }
+
+        console.log(
+          `Masked pixels: ${maskedPixels} out of ${totalPixels} (${(
+            (maskedPixels / totalPixels) *
+            100
+          ).toFixed(1)}%)`
+        );
+
+        // Put the masked image data back on the canvas
+        tempCtx.putImageData(imageData, 0, 0);
+
+        // Debug: Check if we have any opaque pixels after masking
+        const debugImageData = tempCtx.getImageData(
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        let opaquePixels = 0;
+        for (let i = 3; i < debugImageData.data.length; i += 4) {
+          if (debugImageData.data[i] > 0) opaquePixels++;
+        }
+        console.log("Opaque pixels after masking:", opaquePixels);
+
+        // Trim the canvas to the content bounds
+        const trimmedCanvas = trimCanvas(tempCanvas);
+        console.log(
+          "Trimmed canvas dimensions:",
+          trimmedCanvas.width,
+          "x",
+          trimmedCanvas.height
+        );
+
+        // Convert to data URL
+        const stickerDataUrl = trimmedCanvas.toDataURL("image/png");
+
+        // Add to sticker collection
+        addSticker({
+          id: `sticker-${Date.now()}`,
+          dataUrl: stickerDataUrl,
+          width: trimmedCanvas.width,
+          height: trimmedCanvas.height,
+          createdAt: new Date().toISOString(),
+        });
+
+        toast({
+          title: "Sticker extracted!",
+          description: "Your sticker has been added to the collection",
+        });
+
+        // Reset workspace for next extraction
+        resetWorkspace();
       }
-
-      // Put the masked image data back on the canvas
-      tempCtx.putImageData(imageData, 0, 0)
-
-      // Trim the canvas to the content bounds
-      const trimmedCanvas = trimCanvas(tempCanvas)
-
-      // Convert to data URL
-      const stickerDataUrl = trimmedCanvas.toDataURL("image/png")
-
-      // Add to sticker collection
-      addSticker({
-        id: `sticker-${Date.now()}`,
-        dataUrl: stickerDataUrl,
-        width: trimmedCanvas.width,
-        height: trimmedCanvas.height,
-        createdAt: new Date().toISOString(),
-      })
-
-      toast({
-        title: "Sticker extracted!",
-        description: "Your sticker has been added to the collection",
-      })
-
-      // Reset workspace for next extraction
-      resetWorkspace()
     } catch (error) {
-      console.error("Error extracting sticker:", error)
+      console.error("Error extracting sticker:", error);
       toast({
         title: "Extraction failed",
         description: "Could not extract the sticker",
         variant: "destructive",
-      })
+      });
     }
-  }, [image, mask, addSticker, resetWorkspace, toast])
+  }, [image, mask, addSticker, resetWorkspace, toast]);
 
   // Trim canvas to content bounds
   const trimCanvas = (canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })
-    if (!ctx) return canvas
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return canvas;
 
-    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    const l = pixels.data.length
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const l = pixels.data.length;
     const bound = {
       top: null as number | null,
       left: null as number | null,
       right: null as number | null,
       bottom: null as number | null,
-    }
+    };
 
     // Find bounds
     for (let i = 0; i < l; i += 4) {
       if (pixels.data[i + 3] !== 0) {
-        const x = (i / 4) % canvas.width
-        const y = ~~(i / 4 / canvas.width)
+        const x = (i / 4) % canvas.width;
+        const y = ~~(i / 4 / canvas.width);
 
         if (bound.top === null) {
-          bound.top = y
+          bound.top = y;
         }
 
         if (bound.left === null) {
-          bound.left = x
+          bound.left = x;
         } else if (x < bound.left) {
-          bound.left = x
+          bound.left = x;
         }
 
         if (bound.right === null) {
-          bound.right = x
+          bound.right = x;
         } else if (bound.right < x) {
-          bound.right = x
+          bound.right = x;
         }
 
         if (bound.bottom === null) {
-          bound.bottom = y
+          bound.bottom = y;
         } else if (bound.bottom < y) {
-          bound.bottom = y
+          bound.bottom = y;
         }
       }
     }
 
     // Create trimmed canvas
-    const trimmedCanvas = document.createElement("canvas")
-    const trimmedCtx = trimmedCanvas.getContext("2d")
+    const trimmedCanvas = document.createElement("canvas");
+    const trimmedCtx = trimmedCanvas.getContext("2d");
 
     // Check if we have valid bounds
-    if (bound.top === null || bound.left === null || bound.right === null || bound.bottom === null) {
-      return canvas // Return original if no content found
+    if (
+      bound.top === null ||
+      bound.left === null ||
+      bound.right === null ||
+      bound.bottom === null
+    ) {
+      return canvas; // Return original if no content found
     }
 
     // Add some padding
-    const padding = 10
-    bound.top = Math.max(0, bound.top - padding)
-    bound.left = Math.max(0, bound.left - padding)
-    bound.right = Math.min(canvas.width, bound.right + padding)
-    bound.bottom = Math.min(canvas.height, bound.bottom + padding)
+    const padding = 10;
+    bound.top = Math.max(0, bound.top - padding);
+    bound.left = Math.max(0, bound.left - padding);
+    bound.right = Math.min(canvas.width, bound.right + padding);
+    bound.bottom = Math.min(canvas.height, bound.bottom + padding);
 
-    const trimWidth = bound.right - bound.left + 1
-    const trimHeight = bound.bottom - bound.top + 1
+    const trimWidth = bound.right - bound.left + 1;
+    const trimHeight = bound.bottom - bound.top + 1;
 
-    trimmedCanvas.width = trimWidth
-    trimmedCanvas.height = trimHeight
+    trimmedCanvas.width = trimWidth;
+    trimmedCanvas.height = trimHeight;
 
     if (trimmedCtx) {
-      trimmedCtx.drawImage(canvas, bound.left, bound.top, trimWidth, trimHeight, 0, 0, trimWidth, trimHeight)
+      trimmedCtx.drawImage(
+        canvas,
+        bound.left,
+        bound.top,
+        trimWidth,
+        trimHeight,
+        0,
+        0,
+        trimWidth,
+        trimHeight
+      );
     }
 
-    return trimmedCanvas
-  }
+    return trimmedCanvas;
+  };
 
   // Undo last click
   const undoLastClick = useCallback(() => {
-    if (!session) return
+    if (!session || !image) return;
 
-    session.removeLastClick()
-    setClicks((prev) => prev.slice(0, -1))
+    session.removeLastClick();
+    setClicks((prev) => prev.slice(0, -1));
 
     // Re-run segmentation if there are still clicks
     if (clicks.length > 1) {
       session
         .segment(image)
-        .then((maskData: ImageData) => {
-          setMask(maskData)
+        .then((maskData: ImageData | null) => {
+          if (maskData) {
+            setMask(maskData);
 
-          // Draw mask on mask canvas
-          const maskCanvas = maskCanvasRef.current
-          if (maskCanvas && maskData) {
-            maskCanvas.width = maskData.width
-            maskCanvas.height = maskData.height
-            const ctx = maskCanvas.getContext("2d")
-            ctx?.putImageData(maskData, 0, 0)
+            // Draw mask on mask canvas
+            const maskCanvas = maskCanvasRef.current;
+            if (maskCanvas && maskData) {
+              maskCanvas.width = maskData.width;
+              maskCanvas.height = maskData.height;
+              const ctx = maskCanvas.getContext("2d");
+              ctx?.putImageData(maskData, 0, 0);
+            }
+          } else {
+            setMask(null);
+            // Clear mask canvas
+            const maskCanvas = maskCanvasRef.current;
+            if (maskCanvas) {
+              const ctx = maskCanvas.getContext("2d");
+              ctx?.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            }
           }
         })
         .catch((error: any) => {
-          console.error("Segmentation error:", error)
-        })
+          console.error("Segmentation error:", error);
+        });
     } else {
-      setMask(null)
+      setMask(null);
 
       // Clear mask canvas
-      const maskCanvas = maskCanvasRef.current
+      const maskCanvas = maskCanvasRef.current;
       if (maskCanvas) {
-        const ctx = maskCanvas.getContext("2d")
-        ctx?.clearRect(0, 0, maskCanvas.width, maskCanvas.height)
+        const ctx = maskCanvas.getContext("2d");
+        ctx?.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
       }
     }
-  }, [session, clicks, image])
+  }, [session, clicks, image]);
 
   return (
     <div className="flex flex-1 flex-col p-4 lg:w-2/3">
@@ -391,7 +584,10 @@ export function StudioWorkspace() {
             </TabsList>
           </div>
 
-          <TabsContent value="workspace" className="flex-1 p-4 data-[state=active]:flex data-[state=active]:flex-col">
+          <TabsContent
+            value="workspace"
+            className="flex-1 p-4 data-[state=active]:flex data-[state=active]:flex-col"
+          >
             <div className="mb-4 flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -428,17 +624,29 @@ export function StudioWorkspace() {
                 Exclude
               </Button>
 
-              <Button variant="outline" onClick={undoLastClick} disabled={!image || clicks.length === 0 || isLoading}>
+              <Button
+                variant="outline"
+                onClick={undoLastClick}
+                disabled={!image || clicks.length === 0 || isLoading}
+              >
                 <Eraser className="mr-2 h-4 w-4" />
                 Undo Click
               </Button>
 
-              <Button variant="outline" onClick={resetWorkspace} disabled={!image || clicks.length === 0 || isLoading}>
+              <Button
+                variant="outline"
+                onClick={resetWorkspace}
+                disabled={!image || clicks.length === 0 || isLoading}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Reset
               </Button>
 
-              <Button onClick={extractSticker} disabled={!mask || isLoading} className="ml-auto">
+              <Button
+                onClick={extractSticker}
+                disabled={!mask || isLoading}
+                className="ml-auto"
+              >
                 <Scissors className="mr-2 h-4 w-4" />
                 Extract Sticker
               </Button>
@@ -449,7 +657,9 @@ export function StudioWorkspace() {
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center">
                     <div className="mb-2 h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto"></div>
-                    <p className="text-sm text-muted-foreground">Processing...</p>
+                    <p className="text-sm text-muted-foreground">
+                      Processing...
+                    </p>
                   </div>
                 </div>
               )}
@@ -458,7 +668,9 @@ export function StudioWorkspace() {
                 <div className="text-center p-8">
                   <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
                   <p className="mt-2 text-muted-foreground">
-                    {isInitialized ? "Upload an image to get started" : "Initializing segmentation models..."}
+                    {isInitialized
+                      ? "Upload an image to get started"
+                      : "Initializing segmentation models..."}
                   </p>
                 </div>
               )}
@@ -467,7 +679,9 @@ export function StudioWorkspace() {
                 <canvas
                   ref={imageCanvasRef}
                   onClick={handleCanvasClick}
-                  className={`max-h-[70vh] max-w-full ${image ? "cursor-pointer" : "hidden"}`}
+                  className={`max-h-[70vh] max-w-full ${
+                    image ? "cursor-pointer" : "hidden"
+                  }`}
                   style={{ maxWidth: "100%", height: "auto" }}
                 />
 
@@ -487,7 +701,9 @@ export function StudioWorkspace() {
                     <div
                       key={index}
                       className={`absolute rounded-full border-2 pointer-events-none ${
-                        click.type === "include" ? "border-green-500 bg-green-500/20" : "border-red-500 bg-red-500/20"
+                        click.type === "include"
+                          ? "border-green-500 bg-green-500/20"
+                          : "border-red-500 bg-red-500/20"
                       }`}
                       style={{
                         width: "20px",
@@ -503,26 +719,32 @@ export function StudioWorkspace() {
           </TabsContent>
 
           <TabsContent value="help" className="p-6">
-            <h2 className="text-xl font-bold mb-4">How to Use the Sticker Extractor</h2>
+            <h2 className="text-xl font-bold mb-4">
+              How to Use the Sticker Extractor
+            </h2>
 
             <ol className="list-decimal pl-5 space-y-3">
               <li>
-                <strong>Upload an image</strong> - Click the "Upload Image" button to select an image from your device.
+                <strong>Upload an image</strong> - Click the "Upload Image"
+                button to select an image from your device.
               </li>
               <li>
-                <strong>Click on objects</strong> - Click on the object you want to extract. Use the "Include" mode
-                (default) to select areas to keep.
+                <strong>Click on objects</strong> - Click on the object you want
+                to extract. Use the "Include" mode (default) to select areas to
+                keep.
               </li>
               <li>
-                <strong>Refine selection</strong> - Use "Exclude" mode to remove areas from your selection if needed.
+                <strong>Refine selection</strong> - Use "Exclude" mode to remove
+                areas from your selection if needed.
               </li>
               <li>
-                <strong>Extract the sticker</strong> - Once you're happy with the selection, click "Extract Sticker" to
-                add it to your collection.
+                <strong>Extract the sticker</strong> - Once you're happy with
+                the selection, click "Extract Sticker" to add it to your
+                collection.
               </li>
               <li>
-                <strong>Repeat</strong> - You can extract multiple stickers from the same image by resetting and
-                selecting different objects.
+                <strong>Repeat</strong> - You can extract multiple stickers from
+                the same image by resetting and selecting different objects.
               </li>
             </ol>
 
@@ -531,14 +753,23 @@ export function StudioWorkspace() {
               <ul className="list-disc pl-5 space-y-2">
                 <li>Click on areas with similar colors for best results.</li>
                 <li>You can add multiple clicks to expand the selection.</li>
-                <li>If the selection includes unwanted areas, use "Exclude" mode to remove them.</li>
-                <li>The extracted stickers will automatically have transparent backgrounds.</li>
-                <li>This version uses a simple flood-fill algorithm for segmentation.</li>
+                <li>
+                  If the selection includes unwanted areas, use "Exclude" mode
+                  to remove them.
+                </li>
+                <li>
+                  The extracted stickers will automatically have transparent
+                  backgrounds.
+                </li>
+                <li>
+                  This app uses TinySAM, an optimized version of Meta AI's
+                  Segment Anything Model (SAM).
+                </li>
               </ul>
             </div>
           </TabsContent>
         </Tabs>
       </Card>
     </div>
-  )
+  );
 }
