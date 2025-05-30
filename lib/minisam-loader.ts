@@ -2,40 +2,40 @@
 
 import {
   initSegmentation,
-  createSession as createTinysamSession,
-  precomputeEmbedding as precomputeTinysamEmbedding,
+  createSession as createMinissamSession,
+  precomputeEmbedding as precomputeMinissamEmbedding,
   type SegmentationSession,
   type ClickType,
-} from "tinysam";
+} from "minisam";
 
 let isInitialized = false;
 
-// Initialize TinySAM with default CDN models
-export async function initTinySam() {
+// Initialize MiniSAM with default CDN models
+export async function initMiniSam() {
   try {
     if (isInitialized) return true;
 
-    console.log("Initializing TinySAM...");
+    console.log("Initializing MiniSAM...");
 
     // Initialize with default CDN models
     await initSegmentation();
 
     isInitialized = true;
-    console.log("TinySAM initialized successfully");
+    console.log("MiniSAM initialized successfully");
     return true;
   } catch (error) {
-    console.error("Failed to initialize TinySAM:", error);
+    console.error("Failed to initialize MiniSAM:", error);
     throw error;
   }
 }
 
-// TinySAM segmentation session wrapper
+// MiniSAM segmentation session wrapper
 export class SimpleSegmentationSession {
   private session: SegmentationSession;
   private lastMask: ImageData | null = null;
 
   constructor(image: HTMLImageElement) {
-    this.session = createTinysamSession(image);
+    this.session = createMinissamSession(image);
   }
 
   addClick(x: number, y: number, type: ClickType = "include") {
@@ -91,7 +91,7 @@ export async function precomputeEmbedding(
   image: HTMLImageElement
 ): Promise<string> {
   try {
-    return await precomputeTinysamEmbedding(image);
+    return await precomputeMinissamEmbedding(image);
   } catch (error) {
     console.error("Error precomputing embedding:", error);
     throw error;

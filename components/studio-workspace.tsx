@@ -9,12 +9,12 @@ import { Trash2, Upload, Eraser, Plus, Minus, Scissors } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useStickerStore } from "@/lib/sticker-store";
 import {
-  initTinySam,
+  initMiniSam,
   createSession,
   precomputeEmbedding,
   type ClickType,
   type SimpleSegmentationSession,
-} from "@/lib/tinysam-loader";
+} from "@/lib/minisam-loader";
 
 type Click = {
   x: number;
@@ -39,19 +39,19 @@ export function StudioWorkspace() {
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize TinySAM
+  // Initialize MiniSAM
   useEffect(() => {
     const init = async () => {
       try {
         setIsLoading(true);
-        await initTinySam();
+        await initMiniSam();
         setIsInitialized(true);
         toast({
-          title: "TinySAM initialized",
+          title: "MiniSAM initialized",
           description: "Ready to extract stickers!",
         });
       } catch (error) {
-        console.error("Failed to initialize TinySAM:", error);
+        console.error("Failed to initialize MiniSAM:", error);
         toast({
           title: "Initialization failed",
           description: "Could not load segmentation models",
@@ -344,14 +344,14 @@ export function StudioWorkspace() {
           const maskB = scaledMaskData.data[maskPixelIndex + 2] || 0;
           const maskA = scaledMaskData.data[maskPixelIndex + 3] || 0;
 
-          // For TinySAM masks, check multiple interpretations:
+          // For MiniSAM masks, check multiple interpretations:
           // 1. Grayscale in RGB channels where white = foreground
           // 2. Alpha channel contains the mask
           // 3. Any non-zero value indicates foreground
 
           let isForeground = false;
 
-          // TinySAM masks appear to store mask information in the ALPHA channel!
+          // MiniSAM masks appear to store mask information in the ALPHA channel!
           // Alpha = 255 means foreground, Alpha = 0 means background
           if (maskA > 128) {
             isForeground = true;
