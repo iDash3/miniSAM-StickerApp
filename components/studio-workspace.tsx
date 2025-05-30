@@ -719,53 +719,89 @@ export function StudioWorkspace() {
           </TabsContent>
 
           <TabsContent value="help" className="p-6">
-            <h2 className="text-xl font-bold mb-4">
-              How to Use the Sticker Extractor
-            </h2>
+            <div className="max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-200 mb-2">
+                  How to Use the Sticker Extractor
+                </h2>
+                <p className="text-gray-400">
+                  Follow these simple steps to extract stickers from your images
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-100/80">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      1
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Upload an image
+                      </h3>
+                    </div>
+                  </div>
+                </div>
 
-            <ol className="list-decimal pl-5 space-y-3">
-              <li>
-                <strong>Upload an image</strong> - Click the "Upload Image"
-                button to select an image from your device.
-              </li>
-              <li>
-                <strong>Click on objects</strong> - Click on the object you want
-                to extract. Use the "Include" mode (default) to select areas to
-                keep.
-              </li>
-              <li>
-                <strong>Refine selection</strong> - Use "Exclude" mode to remove
-                areas from your selection if needed.
-              </li>
-              <li>
-                <strong>Extract the sticker</strong> - Once you're happy with
-                the selection, click "Extract Sticker" to add it to your
-                collection.
-              </li>
-              <li>
-                <strong>Repeat</strong> - You can extract multiple stickers from
-                the same image by resetting and selecting different objects.
-              </li>
-            </ol>
+                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      2
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Click on objects
+                      </h3>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h3 className="font-medium mb-2">Tips:</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Click on areas with similar colors for best results.</li>
-                <li>You can add multiple clicks to expand the selection.</li>
-                <li>
-                  If the selection includes unwanted areas, use "Exclude" mode
-                  to remove them.
-                </li>
-                <li>
-                  The extracted stickers will automatically have transparent
-                  backgrounds.
-                </li>
-                <li>
-                  This app uses TinySAM, an optimized version of Meta AI's
-                  Segment Anything Model (SAM).
-                </li>
-              </ul>
+                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Refine selection
+                      </h3>
+                      <p className="text-gray-700">
+                        Use "Exclude" mode to remove areas from your selection
+                        if needed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      4
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Extract the sticker
+                      </h3>
+                      <p className="text-gray-700">
+                        Once you're happy with the selection, click "Extract
+                        Sticker" to add it to your collection.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      5
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Repeat!
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
