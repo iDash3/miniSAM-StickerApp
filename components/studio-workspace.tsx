@@ -718,89 +718,65 @@ export function StudioWorkspace() {
             </div>
           </TabsContent>
 
-          <TabsContent value="help" className="p-6">
-            <div className="max-w-2xl mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-200 mb-2">
-                  How to Use the Sticker Extractor
+          <TabsContent
+            value="help"
+            className="p-6 flex items-center justify-center"
+          >
+            <div className="mt-24 max-w-2xl mx-auto space-y-12">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-foreground mb-3">
+                  SAM Powered Segmentation!
                 </h2>
-                <p className="text-gray-400">
-                  Follow these simple steps to extract stickers from your images
+                <p className="text-lg text-muted-foreground">
+                  Extract perfect stickers from any image using Meta's Segment
+                  Anything Model, running entirely in your browser
                 </p>
               </div>
-              <div className="space-y-4">
-                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-100/80">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      1
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Upload an image
-                      </h3>
-                    </div>
-                  </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">
+                    Powered by miniSAM
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Our open-source JavaScript library that brings Meta's
+                    Segment Anything Model to the browser. Everything runs
+                    locally on your device.
+                  </p>
+                  <a
+                    href="https://github.com/iDash3/miniSAM"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  >
+                    View miniSAM on GitHub →
+                  </a>
                 </div>
 
-                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Click on objects
-                      </h3>
-                    </div>
-                  </div>
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">
+                    Open Source App
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    This app is completely open source. Fork it, customize it,
+                    or use it as inspiration for your projects.
+                  </p>
+                  <a
+                    href="https://github.com/iDash3/miniSAM-StickerApp"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                  >
+                    View App Source Code →
+                  </a>
                 </div>
+              </div>
 
-                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      3
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Refine selection
-                      </h3>
-                      <p className="text-gray-700">
-                        Use "Exclude" mode to remove areas from your selection
-                        if needed.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      4
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Extract the sticker
-                      </h3>
-                      <p className="text-gray-700">
-                        Once you're happy with the selection, click "Extract
-                        Sticker" to add it to your collection.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50/80 rounded-lg p-4 border border-gray-200/80">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gray-800 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      5
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Repeat!
-                      </h3>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Start by uploading an image and clicking on objects to extract
+                  them as stickers
+                </p>
               </div>
             </div>
           </TabsContent>
