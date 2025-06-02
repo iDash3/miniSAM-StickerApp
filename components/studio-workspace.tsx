@@ -204,10 +204,7 @@ export function StudioWorkspace() {
         // Draw mask on mask canvas
         const maskCanvas = maskCanvasRef.current;
         if (maskCanvas && maskData) {
-          maskCanvas.width = maskData.width;
-          maskCanvas.height = maskData.height;
-          const ctx = maskCanvas.getContext("2d");
-          ctx?.putImageData(maskData, 0, 0);
+          renderColoredMask(maskData, maskCanvas);
         }
       } catch (error) {
         console.error("Segmentation error:", error);
@@ -574,6 +571,83 @@ export function StudioWorkspace() {
     return trimmedCanvas;
   };
 
+  // Helper function to render mask with custom color
+  const renderColoredMask = (
+    maskData: ImageData,
+    canvas: HTMLCanvasElement
+  ) => {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = maskData.width;
+    canvas.height = maskData.height;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Create a colored version of the mask
+    const coloredMaskData = ctx.createImageData(
+      maskData.width,
+      maskData.height
+    );
+
+    // Convert hex color #6366f1 to RGB
+    const maskColor = {
+      r: 99, // 0x63
+      g: 102, // 0x66
+      b: 241, // 0xf1
+    };
+
+    // Check if the original mask is single-channel (grayscale)
+    const isOriginalSingleChannel =
+      maskData.data.length === maskData.width * maskData.height;
+
+    if (isOriginalSingleChannel) {
+      // For single-channel masks
+      for (let i = 0; i < maskData.data.length; i++) {
+        const maskValue = maskData.data[i];
+        const pixelIndex = i * 4;
+
+        if (maskValue > 128) {
+          coloredMaskData.data[pixelIndex] = maskColor.r; // R
+          coloredMaskData.data[pixelIndex + 1] = maskColor.g; // G
+          coloredMaskData.data[pixelIndex + 2] = maskColor.b; // B
+          coloredMaskData.data[pixelIndex + 3] = 128; // A (semi-transparent)
+        } else {
+          coloredMaskData.data[pixelIndex + 3] = 0; // Transparent
+        }
+      }
+    } else {
+      // For RGBA masks
+      for (let i = 0; i < maskData.data.length; i += 4) {
+        const maskR = maskData.data[i];
+        const maskG = maskData.data[i + 1];
+        const maskB = maskData.data[i + 2];
+        const maskA = maskData.data[i + 3];
+
+        // Check if this pixel is part of the mask
+        let isForeground = false;
+        if (maskA > 128) {
+          isForeground = true;
+        } else if (maskR > 128 || maskG > 128 || maskB > 128) {
+          isForeground = true;
+        }
+
+        if (isForeground) {
+          coloredMaskData.data[i] = maskColor.r; // R
+          coloredMaskData.data[i + 1] = maskColor.g; // G
+          coloredMaskData.data[i + 2] = maskColor.b; // B
+          coloredMaskData.data[i + 3] = 128; // A (semi-transparent)
+        } else {
+          coloredMaskData.data[i + 3] = 0; // Transparent
+        }
+      }
+    }
+
+    // Put the colored mask data on the canvas
+    ctx.putImageData(coloredMaskData, 0, 0);
+  };
+
   // Undo last click
   const undoLastClick = useCallback(() => {
     if (!session || !image) return;
@@ -592,10 +666,7 @@ export function StudioWorkspace() {
             // Draw mask on mask canvas
             const maskCanvas = maskCanvasRef.current;
             if (maskCanvas && maskData) {
-              maskCanvas.width = maskData.width;
-              maskCanvas.height = maskData.height;
-              const ctx = maskCanvas.getContext("2d");
-              ctx?.putImageData(maskData, 0, 0);
+              renderColoredMask(maskData, maskCanvas);
             }
           } else {
             setMask(null);
