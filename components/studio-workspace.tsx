@@ -5,7 +5,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Upload, Eraser, Plus, Minus, Scissors } from "lucide-react";
+import {
+  Trash2,
+  Upload,
+  Eraser,
+  Plus,
+  Minus,
+  Scissors,
+  RotateCcw,
+  Undo2,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useStickerStore } from "@/lib/sticker-store";
 import {
@@ -669,7 +678,7 @@ export function StudioWorkspace() {
                 onClick={undoLastClick}
                 disabled={!image || clicks.length === 0 || isLoading}
               >
-                <Eraser className="mr-2 h-4 w-4" />
+                <Undo2 className="mr-2 h-4 w-4" />
                 Undo Click
               </Button>
 
@@ -678,7 +687,7 @@ export function StudioWorkspace() {
                 onClick={resetWorkspace}
                 disabled={!image || clicks.length === 0 || isLoading}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
+                <RotateCcw className="mr-2 h-4 w-4" />
                 Reset
               </Button>
 
