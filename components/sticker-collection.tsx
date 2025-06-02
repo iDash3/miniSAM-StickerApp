@@ -219,7 +219,7 @@ export function StickerCollection() {
                 <div className="flex-1">
                   <CardTitle className="flex items-center gap-2">
                     <Images className="h-5 w-5" />
-                    Sticker Collection
+                    Stickers
                   </CardTitle>
                   <CardDescription>
                     {stickers.length === 0
