@@ -574,7 +574,7 @@ export function StudioWorkspace() {
   }, [session, clicks, image]);
 
   return (
-    <div className="flex flex-1 flex-col p-4 lg:w-2/3">
+    <div className="flex flex-1 flex-col p-4">
       <Card className="flex flex-1 flex-col">
         <Tabs defaultValue="workspace" className="flex flex-1 flex-col">
           <div className="border-b px-4">
