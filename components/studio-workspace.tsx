@@ -34,6 +34,7 @@ export function StudioWorkspace() {
   const [session, setSession] = useState<SimpleSegmentationSession | null>(
     null
   );
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const imageCanvasRef = useRef<HTMLCanvasElement>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,10 +66,9 @@ export function StudioWorkspace() {
     init();
   }, [toast]);
 
-  // Handle file upload
-  const handleFileUpload = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
+  // Handle file upload (reusable for both drag/drop and file input)
+  const processFile = useCallback(
+    (file: File) => {
       if (!file) return;
 
       setIsLoading(true);
@@ -121,6 +121,46 @@ export function StudioWorkspace() {
       reader.readAsDataURL(file);
     },
     [toast]
+  );
+
+  // Handle file upload from input
+  const handleFileUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        processFile(file);
+      }
+    },
+    [processFile]
+  );
+
+  // Handle drag and drop events
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      const imageFile = files.find((file) => file.type.startsWith("image/"));
+
+      if (imageFile) {
+        processFile(imageFile);
+      }
+    },
+    [processFile]
   );
 
   // Handle canvas click
@@ -652,7 +692,17 @@ export function StudioWorkspace() {
               </Button>
             </div>
 
-            <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-muted/50">
+            <div
+              className={`relative flex flex-1 items-center justify-center overflow-hidden rounded-lg border ${
+                isDragOver
+                  ? "border-primary border-2 bg-primary/5"
+                  : "bg-muted/50"
+              }`}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center">
